@@ -1,0 +1,25 @@
+{
+  "name": "real-time",
+  "version": "1.0.0",
+  "description": "Turing School RealTime project - Crowdsource option",
+  "main": "server.js",
+  "scripts": {
+    "test": "mocha",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jwperry/real-time.git"
+  },
+  "keywords": [
+    "real-time",
+    "realtime",
+    "crowdsource"
+  ],
+  "author": "JWPerry",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jwperry/real-time/issues"
+  },
+  "homepage": "https://github.com/jwperry/real-time#readme"
+}
