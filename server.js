@@ -8,8 +8,9 @@ const io = socketIo(server);
 const countVotes = require('./lib/count-votes');
 const pollId = require('./lib/poll-id');
 
-app.locals.title = 'CrowdSource'
-app.locals.votes = {};
+app.set('view engine', 'ejs');
+var votes = {};
+var polls = {};
 
 server.listen(port, function() {
   console.log('Listening on port ' + port + '.');
@@ -18,18 +19,23 @@ server.listen(port, function() {
 app.use(express.static('public'));
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/public/welcome.html');
+  res.render('welcome');
 });
 
 app.get('/new', function(req, res){
-  res.sendFile(__dirname + '/public/new.html');
+  var newPollId = pollId();
+  var newAdminId = pollId();
+  polls[pollId] = { adminId: newAdminId, A: 0, B: 0, C: 0, D: 0 };
+  adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
+  voterLink = req.headers.host + '/polls/' + newPollId
+  res.render('new', { adminLink: adminLink, voterLink: voterLink });
 });
 
 io.on('connection', function(socket) {
   console.log('A user has connected. Active users: ' + io.engine.clientsCount + '.');
   io.sockets.emit('connectedUsers', io.engine.clientsCount);
   socket.emit('statusMessage', 'You have connected.');
-  socket.emit('voteCount', countVotes(app.locals.votes));
+  socket.emit('voteCount', countVotes(votes));
 
   socket.on('disconnect', function() {
     console.log('A user has disconnected. Active users: ' + io.engine.clientsCount + '.');
@@ -38,9 +44,9 @@ io.on('connection', function(socket) {
 
   socket.on('message', function(channel, message) {
     if (channel === 'voteCast') {
-      app.locals.votes[socket.id] = message;
+      votes[socket.id] = message;
       var confirmMessage = 'You have cast your vote for: ' + message + '.';
-      io.sockets.emit('voteCount', countVotes(app.locals.votes));
+      io.sockets.emit('voteCount', countVotes(votes));
       socket.emit('voteConfirm', confirmMessage);
     }
   });
