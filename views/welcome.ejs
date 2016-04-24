@@ -4,8 +4,20 @@
     <title>CrowdSource</title>
   </head>
   <body>
-    <h1>Welcome to CrowdSource</h1><br /><br />
+    <h1>Welcome to CrowdSource!</h1><br /><br />
+    <h3>You may create a new poll below.</h3><br /><br />
     <form action='/new'>
+      Title:<br />
+      <input type='text' name='poll-title'><br /><br />
+      Options:<br /><br />
+      Option A:
+      <input type='text' name='option-a'><br />
+      Option B:
+      <input type='text' name='option-b'><br />
+      Option C:
+      <input type='text' name='option-c'><br />
+      Option D:
+      <input type='text' name='option-d'><br />
       <input type='submit' value='Create New Poll'>
     </form>
     <script src='/socket.io/socket.io.js'></script>

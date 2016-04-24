@@ -23,12 +23,33 @@ app.get('/', function(req, res){
 });
 
 app.get('/new', function(req, res){
+  console.log(req.query['poll-title']);
+  console.log(req.query['option-a']);
   var newPollId = pollId();
   var newAdminId = pollId();
-  polls[pollId] = { adminId: newAdminId, A: 0, B: 0, C: 0, D: 0 };
+
+  polls[newPollId] = { adminId: newAdminId,
+                       optionA: req.query['option-a'],
+                       optionB: req.query['option-b'],
+                       optionC: req.query['option-c'],
+                       optionD: req.query['option-d'],
+                       A: 0,
+                       B: 0,
+                       C: 0,
+                       D: 0 
+                     };
+
   adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
   voterLink = req.headers.host + '/polls/' + newPollId
   res.render('new', { adminLink: adminLink, voterLink: voterLink });
+});
+
+app.get('/polls/:id', function(req, res){
+  res.render('voter-poll', { pollId: req.params.id });
+});
+
+app.get('/polls/:id/admin/:adminId', function(req, res){
+  res.render('admin-poll', { pollId: req.params.id, adminId: req.params.adminId });
 });
 
 io.on('connection', function(socket) {
