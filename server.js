@@ -39,7 +39,6 @@ app.get('/new', function(req, res){
                        C: 0,
                        D: 0 
                      };
-                     console.log(polls[newPollId]['endTime']);
 
   adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
   voterLink = req.headers.host + '/polls/' + newPollId

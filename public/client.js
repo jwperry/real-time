@@ -12,9 +12,11 @@ var cVotes = document.getElementById('c-votes');
 var dVotes = document.getElementById('d-votes');
 var pollId = document.getElementById('poll-id');
 var pollOpen = document.getElementById('poll-open');
+var endTime = document.getElementById('poll-end-time');
 
 for (var i = 0; i < buttons.length; i++) {
   buttons[i].addEventListener('click', function() {
+    checkForExpiration();
     if (pollOpen.innerText === 'true') {
       socket.send('voteCast', { voteName: this.name, pollId: pollId.innerText });
     }
@@ -68,4 +70,12 @@ if (document.getElementById('admin-id')) {
   closePoll.addEventListener('click', function() {
     socket.send('closePoll', { pollId: pollId.innerText });
   });
+}
+
+function checkForExpiration() {
+  var date = new Date();
+  var currentTime = date.getTime();
+  if (currentTime > endTime.innerText) {
+    pollOpen.innerText = 'false';
+  }
 }
