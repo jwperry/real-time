@@ -23,12 +23,11 @@ app.get('/', function(req, res){
 });
 
 app.get('/new', function(req, res){
-  console.log(req.query['poll-title']);
-  console.log(req.query['option-a']);
   var newPollId = pollId();
   var newAdminId = pollId();
 
   polls[newPollId] = { adminId: newAdminId,
+                       description: req.query['poll-description'],
                        optionA: req.query['option-a'],
                        optionB: req.query['option-b'],
                        optionC: req.query['option-c'],
@@ -45,7 +44,7 @@ app.get('/new', function(req, res){
 });
 
 app.get('/polls/:id', function(req, res){
-  res.render('voter-poll', { pollId: req.params.id });
+  res.render('voter-poll', { poll: polls[req.params.id], pollId: req.params.id });
 });
 
 app.get('/polls/:id/admin/:adminId', function(req, res){
@@ -56,7 +55,7 @@ io.on('connection', function(socket) {
   console.log('A user has connected. Active users: ' + io.engine.clientsCount + '.');
   io.sockets.emit('connectedUsers', io.engine.clientsCount);
   socket.emit('statusMessage', 'You have connected.');
-  socket.emit('voteCount', countVotes(votes));
+  socket.emit('voteCount', votes);
 
   socket.on('disconnect', function() {
     console.log('A user has disconnected. Active users: ' + io.engine.clientsCount + '.');
@@ -65,9 +64,11 @@ io.on('connection', function(socket) {
 
   socket.on('message', function(channel, message) {
     if (channel === 'voteCast') {
-      votes[socket.id] = message;
-      var confirmMessage = 'You have cast your vote for: ' + message + '.';
-      io.sockets.emit('voteCount', countVotes(votes));
+      votes[message['pollId']] = votes[message['pollId']] || {};
+      votes[message['pollId']][socket.id] = votes[message['pollId']][socket.id] || {};
+      votes[message['pollId']][socket.id] = message['voteName'];
+      var confirmMessage = 'You have cast your vote for: ' + message['voteName'] + '.';
+      io.sockets.emit('voteCount', { votes: countVotes(votes, message['pollId'], socket.id), msgPollId: message['pollId'] });
       socket.emit('voteConfirm', confirmMessage);
     }
   });

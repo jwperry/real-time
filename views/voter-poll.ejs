@@ -4,18 +4,25 @@
     <title>CrowdSource</title>
   </head>
   <body>
+    <div id="poll-id" style="display: none;"><%= pollId %></div>
     <div id='connections'></div>
-    <div id='status-message'></div>
+    <div id='status-message'></div><br /><br />
+    <div id='poll-description'><%= poll.description %></div>
     <div id='choices'>
-      <button>A</button>
-      <button>B</button>
-      <button>C</button>
-      <button>D</button>
+      <button name="A">A: <%= poll.optionA %></button>
+      <button name="B">B: <%= poll.optionB %></button>
+      <button name="C">C: <%= poll.optionC %></button>
+      <button name="D">D: <%= poll.optionD %></button>
     </div><br /><br />
+    <h3>Please vote to see the results below!</h3>
     <div id="all-votes">
+      <%= poll.optionA %>
       <div id="a-votes"></div>
+      <%= poll.optionB %>
       <div id="b-votes"></div>
+      <%= poll.optionC %>
       <div id="c-votes"></div>
+      <%= poll.optionD %>
       <div id="d-votes"></div>
     </div>
     <div id='vote-confirm'></div>
