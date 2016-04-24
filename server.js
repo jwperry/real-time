@@ -25,8 +25,10 @@ app.get('/', function(req, res){
 app.get('/new', function(req, res){
   var newPollId = pollId();
   var newAdminId = pollId();
-
+  var endTime = new Date(req.query['end-time']);
   polls[newPollId] = { adminId: newAdminId,
+                       pollOpen: true,
+                       endTime: endTime.getTime(),
                        description: req.query['poll-description'],
                        optionA: req.query['option-a'],
                        optionB: req.query['option-b'],
@@ -37,6 +39,7 @@ app.get('/new', function(req, res){
                        C: 0,
                        D: 0 
                      };
+                     console.log(polls[newPollId]['endTime']);
 
   adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
   voterLink = req.headers.host + '/polls/' + newPollId
@@ -44,18 +47,22 @@ app.get('/new', function(req, res){
 });
 
 app.get('/polls/:id', function(req, res){
-  res.render('voter-poll', { poll: polls[req.params.id], pollId: req.params.id });
+  res.render('voter-poll', { poll: polls[req.params.id],
+                             pollId: req.params.id
+                           });
 });
 
 app.get('/polls/:id/admin/:adminId', function(req, res){
-  res.render('admin-poll', { pollId: req.params.id, adminId: req.params.adminId });
+  res.render('admin-poll', { poll: polls[req.params.id],
+                             pollId: req.params.id,
+                             adminId: req.params.adminId
+                           });
 });
 
 io.on('connection', function(socket) {
   console.log('A user has connected. Active users: ' + io.engine.clientsCount + '.');
   io.sockets.emit('connectedUsers', io.engine.clientsCount);
   socket.emit('statusMessage', 'You have connected.');
-  socket.emit('voteCount', votes);
 
   socket.on('disconnect', function() {
     console.log('A user has disconnected. Active users: ' + io.engine.clientsCount + '.');
@@ -63,15 +70,31 @@ io.on('connection', function(socket) {
   });
 
   socket.on('message', function(channel, message) {
+    if (channel === 'closePoll') {
+      polls[message['pollId']]['pollOpen'] = false;
+      io.sockets.emit('pollClosed', message['pollId']);
+    }
+
     if (channel === 'voteCast') {
       votes[message['pollId']] = votes[message['pollId']] || {};
       votes[message['pollId']][socket.id] = votes[message['pollId']][socket.id] || {};
       votes[message['pollId']][socket.id] = message['voteName'];
-      var confirmMessage = 'You have cast your vote for: ' + message['voteName'] + '.';
       io.sockets.emit('voteCount', { votes: countVotes(votes, message['pollId'], socket.id), msgPollId: message['pollId'] });
-      socket.emit('voteConfirm', confirmMessage);
+      
+      sendConfirmMessage(message['voteName'], socket);      
     }
   });
 });
+
+function sendConfirmMessage(voteName, socket) {
+  if (voteName !== 'resultsOnly') {
+    var confirmMessage = 'You have cast your vote for: ' + voteName + '.';
+    socket.emit('voteConfirm', confirmMessage);
+  }
+  else {
+    var confirmMessage = 'You abstain from voting.';
+    socket.emit('voteConfirm', confirmMessage);
+  }
+}
 
 module.exports = server;
