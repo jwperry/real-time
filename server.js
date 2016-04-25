@@ -1,3 +1,4 @@
+//Server/Socket Initialization
 const http = require('http');
 const express = require('express');
 const app = express();
@@ -7,17 +8,20 @@ const socketIo = require('socket.io');
 const io = socketIo(server);
 const countVotes = require('./lib/count-votes');
 const pollId = require('./lib/poll-id');
-
 app.set('view engine', 'ejs');
-var votes = {};
-var polls = {};
+app.use(express.static('public'));
 
 server.listen(port, function() {
   console.log('Listening on port ' + port + '.');
 });
 
-app.use(express.static('public'));
 
+//Data Store Objects
+var votes = {};
+var polls = {};
+
+
+//Routes
 app.get('/', function(req, res){
   res.render('welcome');
 });
@@ -40,6 +44,8 @@ app.get('/polls/:id/admin/:adminId', function(req, res){
                            });
 });
 
+
+//Socket Event Listener Initialization
 io.on('connection', function(socket) {
   console.log('A user has connected. Active users: ' + io.engine.clientsCount + '.');
   io.sockets.emit('connectedUsers', io.engine.clientsCount);
@@ -51,24 +57,13 @@ io.on('connection', function(socket) {
   });
 
   socket.on('message', function(channel, message) {
-    if (channel === 'closePoll') {
-      polls[message['pollId']]['pollOpen'] = false;
-      io.sockets.emit('pollClosed', message['pollId']);
-    }
-
-    if (channel === 'voteCast') {
-      votes[message['pollId']] = votes[message['pollId']] || {};
-      votes[message['pollId']][socket.id] = votes[message['pollId']][socket.id] || {};
-      votes[message['pollId']][socket.id] = message['voteName'];
-      io.sockets.emit('voteCount', { votes: countVotes(votes, message['pollId'], socket.id), msgPollId: message['pollId'] });
-      
-      sendConfirmMessage(message['voteName'], socket);      
-    }
+    closePollMessage(channel, message);
+    voteCastMessage(channel, message, socket);
   });
 });
 
 
-
+//Helper Functions
 function sendConfirmMessage(voteName, socket) {
   if (voteName !== 'resultsOnly') {
     var confirmMessage = 'You have cast your vote for: ' + voteName + '.';
@@ -110,4 +105,24 @@ function calculateTime(reqQueryEndTime) {
   return endTime.getTime() + timeOffset;
 }
 
+function closePollMessage(channel, message) {
+  if (channel === 'closePoll') {
+    polls[message['pollId']]['pollOpen'] = false;
+    io.sockets.emit('pollClosed', message['pollId']);
+  }
+}
+
+function voteCastMessage(channel, message, socket) {
+  if (channel === 'voteCast') {
+    votes[message['pollId']] = votes[message['pollId']] || {};
+    votes[message['pollId']][socket.id] = votes[message['pollId']][socket.id] || {};
+    votes[message['pollId']][socket.id] = message['voteName'];
+    io.sockets.emit('voteCount', { votes: countVotes(votes, message['pollId'], socket.id), msgPollId: message['pollId'] });
+    
+    sendConfirmMessage(message['voteName'], socket);      
+  }
+}
+
+
+//Exports
 module.exports = server;
