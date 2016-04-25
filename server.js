@@ -23,26 +23,8 @@ app.get('/', function(req, res){
 });
 
 app.get('/new', function(req, res){
-  var newPollId = pollId();
-  var newAdminId = pollId();
-  var endTime = new Date(req.query['end-time']);
-  polls[newPollId] = { adminId: newAdminId,
-                       pollOpen: true,
-                       endTime: endTime.getTime(),
-                       description: req.query['poll-description'],
-                       optionA: req.query['option-a'],
-                       optionB: req.query['option-b'],
-                       optionC: req.query['option-c'],
-                       optionD: req.query['option-d'],
-                       A: 0,
-                       B: 0,
-                       C: 0,
-                       D: 0 
-                     };
-
-  adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
-  voterLink = req.headers.host + '/polls/' + newPollId
-  res.render('new', { adminLink: adminLink, voterLink: voterLink });
+  var pollLinks = constructNewPoll(req);
+  res.render('new', { adminLink: pollLinks.adminLink, voterLink: pollLinks.voterLink });
 });
 
 app.get('/polls/:id', function(req, res){
@@ -85,6 +67,8 @@ io.on('connection', function(socket) {
   });
 });
 
+
+
 function sendConfirmMessage(voteName, socket) {
   if (voteName !== 'resultsOnly') {
     var confirmMessage = 'You have cast your vote for: ' + voteName + '.';
@@ -94,6 +78,32 @@ function sendConfirmMessage(voteName, socket) {
     var confirmMessage = 'You abstain from voting.';
     socket.emit('voteConfirm', confirmMessage);
   }
+}
+
+function constructNewPoll(req){
+  var newPollId = pollId();
+  var newAdminId = pollId();
+  var anonymous = req.query['anonymous'] ? true : false;
+  var endTime = new Date(req.query['end-time']);
+  
+  polls[newPollId] = { adminId: newAdminId,
+                       pollOpen: true,
+                       anonymous: anonymous,
+                       endTime: endTime.getTime(),
+                       description: req.query['poll-description'],
+                       optionA: req.query['option-a'],
+                       optionB: req.query['option-b'],
+                       optionC: req.query['option-c'],
+                       optionD: req.query['option-d'],
+                       A: 0,
+                       B: 0,
+                       C: 0,
+                       D: 0 
+                     };
+
+  adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
+  voterLink = req.headers.host + '/polls/' + newPollId
+  return { adminLink: adminLink, voterLink: voterLink };
 }
 
 module.exports = server;

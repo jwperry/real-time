@@ -13,6 +13,14 @@ var dVotes = document.getElementById('d-votes');
 var pollId = document.getElementById('poll-id');
 var pollOpen = document.getElementById('poll-open');
 var endTime = document.getElementById('poll-end-time');
+var anonymous = document.getElementById('anonymous');
+
+document.addEventListener("DOMContentLoaded", function(event) {
+  if (anonymous.innerText === 'true' && !isAdmin()) {
+    voteMessage.innerText = "Poll results are hidden.";
+    document.getElementById('all-votes').style.display = 'none';
+  }
+});
 
 for (var i = 0; i < buttons.length; i++) {
   buttons[i].addEventListener('click', function() {
@@ -59,7 +67,7 @@ socket.on('voteConfirm', function(confirm) {
   voteConfirm.innerText = confirm;
 });
 
-if (document.getElementById('admin-id')) {
+if (isAdmin()) {
   var showResults = document.getElementById('show-results-button');
   var closePoll = document.getElementById('close-poll-button');
 
@@ -78,4 +86,8 @@ function checkForExpiration() {
   if (currentTime > endTime.innerText) {
     pollOpen.innerText = 'false';
   }
+}
+
+function isAdmin() {
+  return document.getElementById('admin-id') ? true : false;
 }
