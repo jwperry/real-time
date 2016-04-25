@@ -84,12 +84,10 @@ function constructNewPoll(req){
   var newPollId = pollId();
   var newAdminId = pollId();
   var anonymous = req.query['anonymous'] ? true : false;
-  var endTime = new Date(req.query['end-time']);
-  
   polls[newPollId] = { adminId: newAdminId,
                        pollOpen: true,
                        anonymous: anonymous,
-                       endTime: endTime.getTime(),
+                       endTime: calculateTime(req.query['end-time']),
                        description: req.query['poll-description'],
                        optionA: req.query['option-a'],
                        optionB: req.query['option-b'],
@@ -104,6 +102,12 @@ function constructNewPoll(req){
   adminLink = req.headers.host + '/polls/' + newPollId + '/admin/' + newAdminId 
   voterLink = req.headers.host + '/polls/' + newPollId
   return { adminLink: adminLink, voterLink: voterLink };
+}
+
+function calculateTime(reqQueryEndTime) {
+  var endTime = new Date(reqQueryEndTime);
+  var timeOffset = endTime.getTimezoneOffset() * 60 * 1000;
+  return endTime.getTime() + timeOffset;
 }
 
 module.exports = server;

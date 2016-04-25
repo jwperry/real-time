@@ -58,14 +58,16 @@ socket.on('voteConfirm', function(confirm) {
 function checkForExpiration() {
   var date = new Date();
   var currentTime = date.getTime();
-  if (endTime && currentTime > endTime.innerText) {
+  if (endTime && currentTime > parseInt(endTime.innerText)) {
     pollOpen.innerText = 'false';
+    socket.send('closePoll', { pollId: pollId.innerText });
   }
 }
 
 function addButtonEventListeners() {
   for (var i = 0; i < buttons.length; i++) {
     buttons[i].addEventListener('click', function() {
+      checkForExpiration();
       if (pollOpen.innerText === 'true') {
         socket.send('voteCast', { voteName: this.name, pollId: pollId.innerText });
       }
