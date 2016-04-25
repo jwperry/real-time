@@ -24,10 +24,11 @@ var dVotes = document.getElementById('d-votes');
 
 //On Document Loading Complete
 document.addEventListener("DOMContentLoaded", function(event) {
+  console.log(pollOpen.innerText);
   checkForExpiration();
   addButtonEventListeners();
-  hideVoteButtonsIfClosed();
   hideResultsIfAnonymous();
+  hideVoteButtonsIfClosed();
   addButtonListenersIfAdmin();
 });
 
@@ -75,19 +76,19 @@ function addButtonEventListeners() {
   }
 }
 
-function hideVoteButtonsIfClosed() {
-  if (pollOpen && pollOpen.innerText === 'false') {
-    for (var i = 0; i < allVoteButtons.length; i++) {
-      allVoteButtons[i].style.display = 'none';
-      voteMessage.innerText = "No further votes allowed, poll has closed!";
-    }
-  }
-}
-
 function hideResultsIfAnonymous() {
   if (anonymous && anonymous.innerText === 'true' && !isAdmin()) {
     voteMessage.innerText = "Poll results are hidden.";
     document.getElementById('all-votes').style.display = 'none';
+  }
+}
+
+function hideVoteButtonsIfClosed() {
+  if (pollOpen && pollOpen.innerText === 'false') {
+    for (var i = 0; i < allVoteButtons.length; i++) {
+      allVoteButtons[i].style.display = 'none';
+    }
+    voteMessage.innerText = "No further votes allowed, poll has closed!";
   }
 }
 
